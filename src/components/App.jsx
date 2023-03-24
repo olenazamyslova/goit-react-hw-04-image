@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ToastContainer } from 'react-toastify';
+import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Searchbar from './Searchbar/Searchbar';
 import ImageGallery from './ImageGallery/ImageGallery';
@@ -8,7 +8,7 @@ import Button from './Button/Button';
 import Loader from './Loader/Loader';
 import { fetchImages } from 'components/services/fetchImages';
 
-export default function App() {
+const App = () => {
   const [searchRequest, setSearchRequest] = useState('');
   const [images, setImages] = useState([]);
   const [galleryPage, setGalleryPage] = useState(1);
@@ -18,13 +18,18 @@ export default function App() {
   const [showBtn, setShowBtn] = useState(false);
 
   useEffect(() => {
-    const updateImages = async () => {
-      setIsLoading(true);
+    if (searchRequest.trim() === '') {
+      return;
+    }
+
+    setIsLoading(true);
+    setTimeout(() => {
       try {
-        const data = await fetchImages(searchRequest, galleryPage);
-        if (!data.data.hits.length) {
-          console.error('There are no images found ;(');
-        } else {
+        fetchImages(searchRequest, galleryPage).then(data => {
+          if (!data.data.hits.length) {
+            return toast.error('There are no images found ;(');
+          }
+
           const mappedImages = data.data.hits.map(
             ({ id, webformatURL, tags, largeImageURL }) => ({
               id,
@@ -37,22 +42,23 @@ export default function App() {
           setImages(prevImages => [...prevImages, ...mappedImages]);
           setShowBtn(galleryPage < Math.ceil(data.data.totalHits / 12));
           console.log(data.data.totalHits);
-        }
+        });
       } catch (error) {
-        console.error('Something went wrong: ', error.message);
         setError(error);
       } finally {
         setIsLoading(false);
       }
-    };
+    }, 1000);
 
-    updateImages();
+    return () => {
+      setImages([]);
+      setGalleryPage(1);
+      setError(null);
+    };
   }, [searchRequest, galleryPage]);
 
   const handleSearchSubmit = searchRequest => {
     setSearchRequest(searchRequest);
-    setImages([]);
-    setGalleryPage(1);
   };
 
   const loadMore = () => {
@@ -74,7 +80,7 @@ export default function App() {
   return (
     <>
       <Searchbar onSearch={handleSearchSubmit} />
-      {error && console.error(`Something went wrong: ${error.message}`)}
+      {error && toast.error(`Something went wrong: ${error.message}`)}
       {images.length > 0 && (
         <>
           <ImageGallery images={images} handlePreview={showModalImage} />
@@ -86,12 +92,14 @@ export default function App() {
         <Modal
           lgImage={showModal.largeImageURL}
           tags={showModal.tags}
-
           closeModal={closeModalImage}
         />
       )}
       <ToastContainer autoClose={2500} />
     </>
   );
-}
+};
+
+export default App;
+
 

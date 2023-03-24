@@ -16,12 +16,11 @@ closeModal();
 }, [closeModal]);
 
 useEffect(() => {
-window.addEventListener('keydown', handleKeyDown);
-return () => {
+  window.addEventListener('keydown', handleKeyDown);
+  return () => {
   window.removeEventListener('keydown', handleKeyDown);
-};
-
-}, [handleKeyDown]);
+  };
+  }, [handleKeyDown]);
 
 return (
 <div className={style.Overlay} onClick={handleBackdropClick}>
@@ -39,6 +38,7 @@ tags: PropTypes.string.isRequired,
 };
 
 export default Modal;
+
 
 
 
