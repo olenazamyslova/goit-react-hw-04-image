@@ -23,41 +23,35 @@ const App = () => {
     }
 
     setIsLoading(true);
-    setTimeout(() => {
-      try {
-        fetchImages(searchRequest, galleryPage).then(data => {
-          if (!data.data.hits.length) {
-            return toast.error('There are no images found ;(');
-          }
+    try {
+      fetchImages(searchRequest, galleryPage).then(data => {
+        if (!data.data.hits.length) {
+          return toast.error('There are no images found ;(');
+        }
 
-          const mappedImages = data.data.hits.map(
-            ({ id, webformatURL, tags, largeImageURL }) => ({
-              id,
-              webformatURL,
-              tags,
-              largeImageURL,
-            })
-          );
+        const mappedImages = data.data.hits.map(
+          ({ id, webformatURL, tags, largeImageURL }) => ({
+            id,
+            webformatURL,
+            tags,
+            largeImageURL,
+          })
+        );
 
-          setImages(prevImages => [...prevImages, ...mappedImages]);
-          setShowBtn(galleryPage < Math.ceil(data.data.totalHits / 12));
-          console.log(data.data.totalHits);
-        });
-      } catch (error) {
-        setError(error);
-      } finally {
-        setIsLoading(false);
-      }
-    }, 1000);
-
-    return () => {
-      setImages([]);
-      setGalleryPage(1);
-      setError(null);
-    };
+        setImages(prevImages => [...prevImages, ...mappedImages]);
+        setShowBtn(galleryPage < Math.ceil(data.data.totalHits / 12));
+      });
+    } catch (error) {
+      setError(error);
+    } finally {
+      setIsLoading(false);
+    }
   }, [searchRequest, galleryPage]);
 
   const handleSearchSubmit = searchRequest => {
+    setImages([]);
+    setGalleryPage(1);
+    setError(null);
     setSearchRequest(searchRequest);
   };
 
@@ -65,8 +59,7 @@ const App = () => {
     setGalleryPage(prevPage => prevPage + 1);
   };
 
-  const showModalImage = id => {
-    const image = images.find(image => image.id === id);
+  const showModalImage = image => {
     setShowModal({
       largeImageURL: image.largeImageURL,
       tags: image.tags,
@@ -101,5 +94,3 @@ const App = () => {
 };
 
 export default App;
-
-
